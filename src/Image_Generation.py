@@ -1,8 +1,8 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import random
 
 # Define text and font
-text = "你好世界"  # Text to display
+text = "黄河之水天上来"  # Text to display
 font_path = "simsun.ttc"  # Font path
 font_size = 80
 font = ImageFont.truetype(font_path, font_size)
@@ -30,16 +30,43 @@ img_height = box_height
 img = Image.new("RGB", (img_width, img_height), (255, 255, 255))
 draw = ImageDraw.Draw(img)
 
+# Draw each character inside its bordered box
+x_offset = 0
+for i, char in enumerate(text):
+    box_width = box_widths[i]
+    char_width = char_widths[i]
+
+    # Calculate text position inside the box (centered)
+    text_x = x_offset + (box_width - char_width) // 2
+    text_y = (box_height - char_height) // 2
+
+    # Draw the text
+    draw.text((text_x, text_y), char, font=font, fill=(0, 0, 0),
+              stroke_width=1, stroke_fill=(255, 255, 255))  # Black text
+
+    # Move to the next character position, considering the border thickness
+    x_offset += box_width - border_thickness  # No spacing between boxes now
+
+
+img = ImageOps.invert(img)
+draw = ImageDraw.Draw(img)
+
+# Define the starting point (x, y) and new fill color
+start_position = (10, 10)  # A point inside the area to be filled
+new_color = (255, 255, 255)  # Red
+
+# Apply flood fill
+ImageDraw.floodfill(img, xy=start_position, value=new_color, thresh=750)
+
+
 # Function to generate a single non-black, non-white color for all boxes
 def random_color():
     return (random.randint(50, 200), random.randint(50, 200), random.randint(50, 200))
 
 box_color = random_color()  # Set a single box color for all characters
 
-# Draw each character inside its bordered box
 x_offset = 0
-for i, char in enumerate(text):
-    char_width = char_widths[i]
+for i in range(len(text)):
     box_width = box_widths[i]
 
     # Calculate box coordinates
@@ -47,17 +74,10 @@ for i, char in enumerate(text):
 
     # Draw the box edges (outline) — avoid double borders between boxes
     draw.rectangle(box_coords, outline=box_color, width=border_thickness)
-
-    # Calculate text position inside the box (centered)
-    text_x = x_offset + (box_width - char_width) // 2
-    text_y = (box_height - char_height) // 2
-
-    # Draw the text
-    draw.text((text_x, text_y), char, font=font, fill=(0, 0, 0))  # Black text
-
+    
     # Move to the next character position, considering the border thickness
     x_offset += box_width - border_thickness  # No spacing between boxes now
 
 # Save and show the image
-img.save("merged_borders_text_image_v2.png")
+img.save("sha_chuang_image.png")
 img.show()
